@@ -1,4 +1,9 @@
 import pandas as pd
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+
+options = Options()
+options.headless = True
 
 
 class TocaData:
@@ -33,3 +38,23 @@ class TocaData:
         except Exception as ex:
             print(ex)
 
+    def GetElementsByCoords(self, x=0, y=0, w=0, h=0):
+        try:
+            driver = webdriver.Chrome(chrome_options=options)
+            driver.get("https://www.google.com/")
+            content = driver.find_elements_by_xpath("//*")
+            # filter content by height and width being similar to params
+            # filter content by x/y coords not being too different to params
+            # compare screenshots (potentially GPU acceleration?)
+            for x in filter(lambda x : x.is_displayed, content):
+                if(x.size['height'] != 0 and x.size['width'] != 0):
+                    try:
+                        screenshot = x.screenshot_as_base64
+                        screenshot = "data:image/png;base64," + screenshot
+                        
+                    except Exception as error:
+                        print(error)
+            driver.close()
+            driver.quit()
+        except Exception as ex:
+            print(ex)
