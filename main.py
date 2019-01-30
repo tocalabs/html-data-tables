@@ -1,8 +1,10 @@
 from DataTables.datatables import TocaData
+from DataTables.Box import Box
 
 Data = TocaData()
 
-URL = "https://www.londonstockexchange.com/exchange/prices-and-markets/stocks/risers-and-fallers/risers-fallers.html"
 
 if __name__ == "__main__":
-    Data.GetElementsByCoords(0, 0, 0, 0)
+   Data.GetElementsByCoords(5, 5, 1000, 2000)
+   print(Data.table)
+   print(Data.element_coords)
