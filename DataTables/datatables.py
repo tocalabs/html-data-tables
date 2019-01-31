@@ -2,6 +2,7 @@ import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import pyscreenshot as ImageGrab
+from time import sleep
 
 from DataTables.Box import Box
 
@@ -41,11 +42,12 @@ class TocaData:
         try:
             driver = webdriver.Chrome(chrome_options=options)
             driver_rect = driver.get_window_rect()
-            print(driver.execute_script("return window.pageYOffset"))
+
+            driver.get("https://www.w3schools.com/html/html_tables.asp")
+            
             inner_height = int(driver.execute_script("return innerHeight"))
             outer_height = int(driver.execute_script("return outerHeight"))
             height_difference = outer_height - inner_height
-
             user_box = Box(
                 driver_rect['x'] + x, 
                 driver_rect['y'] + y, 
@@ -53,33 +55,29 @@ class TocaData:
                 driver_rect['height']
                 )
 
-            driver.get("https://www.w3schools.com/html/html_tables.asp")
-
             content = driver.find_elements_by_tag_name('table')
 
             filtered_content = list(filter(lambda x : x.size['height'] != 0 and x.size['width'] != 0, content))
 
             for element in filtered_content:
+                relative_element_rect = driver.execute_script("return arguments[0].getBoundingClientRect()", element)
                 table_box = Box(
-                    element.rect['x'] + height_difference, 
-                    element.rect['y'], 
-                    element.rect['width'],
-                    element.rect['height']
+                    relative_element_rect['x'], 
+                    relative_element_rect['y'] + height_difference, 
+                    relative_element_rect['width'],
+                    relative_element_rect['height']
                     )
                 if user_box.intersection(table_box):
                     table_html = element.get_attribute('outerHTML')
                     self.table = pd.read_html(table_html)[0]
-                    absolute_y = driver_rect['y'] + height_difference + int(element.rect['y'])
-                    absolute_x = driver_rect['x'] + int(element.rect['x'])
+                    absolute_y = driver_rect['y'] + height_difference + int(relative_element_rect['y'])
+                    absolute_x = driver_rect['x'] + int(relative_element_rect['x'])
                     self.element_coords = {
                         'top': absolute_y,
                         'left': absolute_x,
                         'width': element.rect['width'],
                         'height': element.rect['height'] 
                     }
-                    print(driver_rect['y'])
-                    print(height_difference)
-                    print(element.rect['y'])
             driver.close()
             driver.quit()
 
